@@ -4,7 +4,7 @@ This project can generate a 3D world models based on user defined parameter and 
 ## How you will demonstrate what you accomplished: 
 This is a huge project and cannot be done within one month. I want to deliver a simplest version of the generator. It will include a curved street, trees, and maybe buildings. User can define the curve and maybe some other parameters. Then the program will produce the 3D model for the street view. Moreover, there will be no texture on the model.
 ## Current Stage
- * Preparing taking input from the user
+ * Preparing taking input from the user - done
  * Building a graphical interface for user to take input
  * Fragmenting the street for each OpenMP or CUDA process
  * What kind of randomization is needed 
@@ -16,5 +16,9 @@ Should be a file
 ## Files
 * main.cpp: take in 4 2D dots, then output to a obj file
 * Bezier: Bezier curve processing.
+* DataType.h: Defined Vector, TwoD_function
+* GenerateImage: Generate the actual output from vertices
 ## Testing
-Testing 1: bezier curve from control points to dots
+Testing Bezier: bezier curve from control points to dots
+Testing Vector: user defined Vector functionality
+Testing GenerateImage: from vertices to files
