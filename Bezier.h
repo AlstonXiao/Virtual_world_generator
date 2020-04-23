@@ -6,7 +6,7 @@
 #endif
 
 
-#define PARAPOINTS 10
+
 
 // This function will process the controll points of the bezier curve and
 // turn them into arc-length parametrized points and tangent

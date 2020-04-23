@@ -13,6 +13,11 @@
 #include "../GenerateImage.h"
 #endif
 
+#ifndef GLOBALS_H
+#define GLOBALS_H
+#include "../globals.h"
+#endif
+
 #include <iostream>
 #include <cstdlib>
 using namespace std;
@@ -27,5 +32,11 @@ main(){
     Vector3<int> face[4];
     face[0] = Vector3<int>(0,1,2);
     face[1] = Vector3<int>(0,2,3);
-    Generate(controlP, 4, face, 2);
+
+    ThreeDObject newObject;
+    newObject.vertices = controlP;
+    newObject.faces = face;
+    newObject.vertice_count = 4;
+    newObject.face_count = 2;
+    Generate(newObject);
 }

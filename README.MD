@@ -7,7 +7,8 @@ This is a huge project and cannot be done within one month. I want to deliver a 
  * Preparing taking input from the user - done
  * Building a graphical interface for user to take input
  * Fragmenting the street for each OpenMP or CUDA process
- * What kind of randomization is needed 
+ * OpenMP: create the street
+ * CUDA: give the street a unique taste by adding bumps on the street
 ## input output
 ### Input 
 Should be 4 points on a 500 * 500 canvas, each points is a control points for the bezier curve

@@ -2,7 +2,10 @@
 #define BEZIER_H
 #include "../Bezier.h"
 #endif
-
+#ifndef GLOBALS_H
+#define GLOBALS_H
+#include "../globals.h"
+#endif
 #ifndef DATATYPE_H
 #define DATATYPE_H
 #include "../DataType.h"
@@ -21,6 +24,6 @@ main(){
     // cout<<controlP[3];
     CanvasPoints* points = ProcessPoints(controlP);
     for (int i = 0; i <= PARAPOINTS; i++){
-        cout<<points[i].location<<" "<<points[i].tan<<"\n";
+        cout<<points[i].location<<" "<<points[i].tan<<" "<<points[i].distance<<"\n";
     }
 }

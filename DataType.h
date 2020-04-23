@@ -2,6 +2,7 @@
 #include <array>
 #include <string>
 #include <iostream>
+#include <math.h>
 
 template<typename T>
 struct Vector2 {
@@ -56,10 +57,28 @@ struct Vector3 {
     }
 };
 
+template<typename T>
+float distance(Vector3<T> p1, Vector3<T> p2) {
+    return sqrt((p1.x - p2.x)*(p1.x - p2.x) + (p1.y - p2.y)*(p1.y - p2.y) + (p1.z - p2.z)*(p1.z - p2.z));
+}
+
+template<typename T>
+float distance(Vector2<T> p1, Vector2<T> p2) {
+    return sqrt((p1.x - p2.x)*(p1.x - p2.x) + (p1.y - p2.y)*(p1.y - p2.y));
+}
+
 typedef struct CanvasPoints{
     Vector2<float> location;
     Vector2<float> tan;
+    float distance;
 }CanvasPoints;
+
+typedef struct ThreeDObject{
+    Vector3<float>* vertices;
+    Vector3<int>* faces;
+    size_t vertice_count;
+    size_t face_count;
+}ThreeDObject;
 
 class TwoD_function{
     public:
@@ -80,7 +99,7 @@ class TwoD_function{
         zeroDegreeDri = _oneDegree;
         oneDegreeDri = _twoDegree * 2;
         twoDegreeDri = _threeDegree * 3;
-        std::cout<<_zeroDegree<<oneDegree<<twoDegree<<threeDegree<<zeroDegreeDri<<oneDegreeDri<<twoDegreeDri<<"\n";
+        //std::cout<<_zeroDegree<<oneDegree<<twoDegree<<threeDegree<<zeroDegreeDri<<oneDegreeDri<<twoDegreeDri<<"\n";
     }
 
     Vector2<float> at(float u) {
@@ -91,3 +110,55 @@ class TwoD_function{
         return (zeroDegreeDri + oneDegreeDri*u + twoDegreeDri*u*u);
     }
 };
+
+typedef struct StreetConfig{
+    float centerWidth;
+    float centerHeight;
+    bool inner;
+    float innerWidth;
+    float innerHeight;
+
+    int laneCount;
+    float laneWidth;
+
+    bool laneDivide;
+    float laneDiverHeight;
+
+    float shoulderWidth;
+    float paveHeight;
+    
+    friend std::ostream & operator<<(std::ostream & out, const StreetConfig& rhs) {
+        out << "center Width: " << rhs.centerWidth << ", center Height: " << rhs.centerHeight<<"\n";
+        if (rhs.inner) {
+            out << "inner: true, inner Width: " << rhs.innerWidth<<", inner Height: " << rhs.innerHeight<<"\n";
+        } else {
+            out << "inner: false\n";
+        }
+        out << "lane Count: " << rhs.laneCount << ", lane Width: " << rhs.laneWidth<<"\n";
+        if (rhs.laneDivide) {
+            out << "lane Divide: true, lane Diver Height: " << rhs.laneDiverHeight<<"\n";
+        } else {
+            out << "lane Divide: false\n";
+        }
+        
+        out << "shoulder Width: " << rhs.shoulderWidth<<"\n";        
+        out << "pave Height: " << rhs.paveHeight<<"\n";
+        return out;
+    }
+}StreetConfig;
+
+typedef struct StreetConfigExtra{
+    bool extraSpace;
+    float extraSpaceWidth;
+    float extraSpaceDistance;
+
+    friend std::ostream & operator<<(std::ostream & out, const StreetConfig& rhs) {
+        if (rhs.extraSpace){
+            out << "extra Space: true, extra SpaceWidth: " << rhs.extraSpaceWidth<<", extra Space Distance: " << rhs.extraSpaceDistance<<"\n";
+        } else {
+            out << "extra Space: false\n";
+        }
+        
+        return out;
+    }
+}StreetConfigExtra;

@@ -8,6 +8,12 @@
 #include "DataType.h"
 #endif
 
+#ifndef GLOBALS_H
+#define GLOBALS_H
+#include "globals.h"
+#endif
+
+#include <cmath>
 using namespace std;
 CanvasPoints* ProcessPoints(Vector2<float>* controllPoints) {
     Vector2<float> startPoint = controllPoints[0];
@@ -23,6 +29,12 @@ CanvasPoints* ProcessPoints(Vector2<float>* controllPoints) {
         float u = ((float) i) / ((float)PARAPOINTS);
         points[i].location = curve.at(u);
         points[i].tan = curve.dirvAt(u);
+        float tan_d = sqrt(points[i].tan.x *points[i].tan.x  + points[i].tan.y *points[i].tan.y);
+        points[i].tan = points[i].tan / tan_d;
+    }
+
+    for (int i = 0; i < PARAPOINTS; i++) {
+        points[i].distance = distance(points[i].location, points[i+1].location);
     }
     return points;
 } 
