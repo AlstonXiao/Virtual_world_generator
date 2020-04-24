@@ -3,11 +3,6 @@
 #include "Bezier.h"
 #endif
 
-#ifndef DATATYPE_H
-#define DATATYPE_H
-#include "DataType.h"
-#endif
-
 #ifndef GLOBALS_H
 #define GLOBALS_H
 #include "globals.h"

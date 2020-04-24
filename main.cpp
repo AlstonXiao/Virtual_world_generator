@@ -49,5 +49,5 @@ int main(int argc, char** argv){
     // cout<<controlP[3];
     CanvasPoints* points = ProcessPoints(controlP);   
     ThreeDObject obj = generateStreet(points);
-    // Generate(obj);
+    Generate(obj);
 }
