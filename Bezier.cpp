@@ -23,9 +23,10 @@ CanvasPoints* ProcessPoints(Vector2<float>* controllPoints) {
     for (int i = 0; i <= PARAPOINTS; i++) {
         float u = ((float) i) / ((float)PARAPOINTS);
         points[i].location = curve.at(u);
-        points[i].tan = curve.dirvAt(u);
+        points[i].tan = Vector2<float>(-curve.dirvAt(u).y, curve.dirvAt(u).x);
         float tan_d = sqrt(points[i].tan.x *points[i].tan.x  + points[i].tan.y *points[i].tan.y);
         points[i].tan = points[i].tan / tan_d;
+        cout<<points[i].location<<points[i].tan<<"\n";
     }
 
     for (int i = 0; i < PARAPOINTS; i++) {

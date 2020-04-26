@@ -1,3 +1,3 @@
-#define PARAPOINTS 10
+#define PARAPOINTS 100
 #define SECTIONSIZE 10
 #define DEFINITIONSTEP 0.1f

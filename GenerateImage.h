@@ -1,2 +1,2 @@
 
-void Generate(ThreeDObject OuputObject);
+void Generate(ThreeDObject OuputObject[]);

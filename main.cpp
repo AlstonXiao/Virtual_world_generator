@@ -48,6 +48,6 @@ int main(int argc, char** argv){
     controlP[3] = Vector2<float>(p4x,p4y);
     // cout<<controlP[3];
     CanvasPoints* points = ProcessPoints(controlP);   
-    ThreeDObject obj = generateStreet(points);
+    ThreeDObject* obj = generateStreet(points);
     Generate(obj);
 }

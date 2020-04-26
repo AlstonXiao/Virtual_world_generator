@@ -123,6 +123,7 @@ typedef struct StreetConfig{
 
     bool laneDivide;
     float laneDiverHeight;
+    float laneDivderWidth;
 
     float shoulderWidth;
     float paveHeight;
@@ -152,7 +153,7 @@ typedef struct StreetConfigExtra{
     float extraSpaceWidth;
     float extraSpaceDistance;
 
-    friend std::ostream & operator<<(std::ostream & out, const StreetConfig& rhs) {
+    friend std::ostream & operator<<(std::ostream & out, const StreetConfigExtra& rhs) {
         if (rhs.extraSpace){
             out << "extra Space: true, extra SpaceWidth: " << rhs.extraSpaceWidth<<", extra Space Distance: " << rhs.extraSpaceDistance<<"\n";
         } else {

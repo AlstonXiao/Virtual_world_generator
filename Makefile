@@ -1,7 +1,7 @@
 all:
-	g++ main.cpp Bezier.cpp Street.cpp -Wall -O3 -o generator -fopenmp
+	g++ main.cpp Bezier.cpp Street.cpp GenerateImage.cpp -Wall -O3 -o generator -fopenmp
 run:
-	generator 0 250 100 250 400 250 500 250
+	generator 0 0 400 200 100 200 500 0
 test_vector:
 	g++ ./Testing-script/VectorTesting.cpp -Wall -O3 -o vector_testing
 test_bezier:
