@@ -8,5 +8,7 @@ test_bezier:
 	g++ ./Testing-script/BezierTesting.cpp Bezier.cpp -Wall -O3 -o bezier_testing
 test_generateimage:
 	g++ ./Testing-script/GenerateImageTesting.cpp Bezier.cpp GenerateImage.cpp -Wall -O3 -o generateimage_testing
+test_perlin:
+	g++ ./Testing-script/PerlinNoiseTesting.cpp PerlinNoise.cpp -Wall -O3 -o perlin_testing
 clean:
-	rm -f bezier_testing vector_testing generateimage_testing output.obj generator
+	rm -f bezier_testing vector_testing generateimage_testing output.obj generator perlin_testing
