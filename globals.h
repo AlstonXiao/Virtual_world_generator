@@ -1,3 +1,5 @@
-#define PARAPOINTS 100
+#define PARAPOINTS 200
 #define SECTIONSIZE 10
 #define DEFINITIONSTEP 0.1f
+#define LANEDASH 4.0f
+#define BARDISTANCE 1.0f
