@@ -1,7 +1,7 @@
 // Modified from Ken Perlin's implementation of the Perlin Noise
 // https://mrl.nyu.edu/~perlin/noise/
 #include <cmath>
-#include "PerlinNoise.h"
+#include "PerlinNoise.cuh"
 
 #ifndef DATATYPE_H
 #define DATATYPE_H
@@ -90,4 +90,12 @@ float OctavePerlin(float x, float y, float z, int octaves, float persistence) {
     }
     
     return addedtotal/maxValue;
+}
+
+__global__ void PerlinKernel(Vector3<float>* points, const int octaves, const float persistence) {
+
+}
+__host__ void randomize(ThreeDObject TheObject, int octaves, float persistence) {
+
+
 }

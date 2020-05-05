@@ -1,4 +1,4 @@
-#include "../PerlinNoise.h"
+#include "../PerlinNoise.cuh"
 #include <iostream>
 #include <cstdlib>
 #include <fstream>
