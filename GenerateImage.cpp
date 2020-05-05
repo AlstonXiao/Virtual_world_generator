@@ -11,24 +11,27 @@
 #include <iostream>
 #include <fstream>
 using namespace std;
-void Generate(ThreeDObject OuputObject[]) {
+void Generate(OutputObject Out) {
     ofstream objOutput("output.obj");
-    
+    ThreeDObject* OuputObject = Out.objects;
     objOutput<<"o result\n";
-    for (size_t i = 0; i < OuputObject[0].vertice_count; i++) {
-        objOutput<<"v "<<OuputObject[0].vertices[i].x<<" "<<OuputObject[0].vertices[i].y<<" "<<OuputObject[0].vertices[i].z<<"\n";
+    for (size_t j = 0; j < Out.otherObjectCount + 2; j++) {
+        for (size_t i = 0; i < OuputObject[j].vertice_count; i++) {
+            objOutput<<"v "<<OuputObject[j].vertices[i].x<<" "<<OuputObject[j].vertices[i].y<<" "<<OuputObject[j].vertices[i].z<<"\n";
+        }
     }
-    for (size_t i = 0; i < OuputObject[1].vertice_count; i++) {
-        objOutput<<"v "<<OuputObject[1].vertices[i].x<<" "<<OuputObject[1].vertices[i].y<<" "<<OuputObject[1].vertices[i].z<<"\n";
+
+
+    objOutput<<"\n";
+    int preFace = 1;
+    for (size_t j = 0; j < Out.otherObjectCount + 2; j++) {
+        for (size_t i = 0; i < OuputObject[j].face_count; i++) {
+            objOutput<<"f "<<OuputObject[j].faces[i].x+preFace<<" "<<OuputObject[j].faces[i].y+preFace<<" "<<OuputObject[j].faces[i].z+preFace<<"\n";
+        }
+        preFace+=OuputObject[j].vertice_count;
     }
     objOutput<<"\n";
-    for (size_t i = 0; i < OuputObject[0].face_count; i++) {
-        objOutput<<"f "<<OuputObject[0].faces[i].x+1<<" "<<OuputObject[0].faces[i].y+1<<" "<<OuputObject[0].faces[i].z+1<<"\n";
-    }
-    objOutput<<"\n";
-    cout<<"obj vcout:"<<OuputObject[0].vertice_count<<" Obj2 vount:"<<OuputObject[1].vertice_count<<"\n";
-    for (size_t i = 0; i < OuputObject[1].face_count; i++) {
-        objOutput<<"f "<<OuputObject[1].faces[i].x+1 +OuputObject[0].vertice_count <<" "<<OuputObject[1].faces[i].y+1+OuputObject[0].vertice_count<<" "<<OuputObject[1].faces[i].z+1+OuputObject[0].vertice_count<<"\n";
-    }
+    cout<<"obj vcout:"<<OuputObject[0].vertice_count<<" Obj2 vount:"<<OuputObject[1].vertice_count<<"\n";    
+
     objOutput.close();
 }

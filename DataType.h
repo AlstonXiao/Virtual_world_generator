@@ -80,6 +80,12 @@ typedef struct ThreeDObject{
     size_t face_count;
 }ThreeDObject;
 
+typedef struct OutputObject {
+    ThreeDObject* objects;
+    size_t streetCount;
+    size_t otherObjectCount;
+}OutputObject;
+
 class TwoD_function{
     public:
     Vector2<float> zeroDegree;
