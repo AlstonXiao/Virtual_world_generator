@@ -71,7 +71,7 @@ OutputObject generateStreet(CanvasPoints points[]){
     
     // Generate random config
     StreetConfig config = generateRandomConfig();
-    cout<<config<<std::flush;
+    // cout<<config<<std::flush;
     int totalpartitions = (PARAPOINTS + SECTIONSIZE) / SECTIONSIZE * 2; // * 2 for each side
     int totalObjects = totalpartitions + config.laneCount - 1 + 2 + 1; //lanecount - 1 is the line in the middle, 2 for line at the side, final 1 is for the bars.
     int finalObjectsStart = totalpartitions + config.laneCount - 1;

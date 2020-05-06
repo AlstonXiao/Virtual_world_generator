@@ -1,8 +1,8 @@
 all: PerlinNoise.o
 	g++ main.cpp Bezier.cpp Street.cpp GenerateImage.cpp PerlinNoise.o -Wall -O3 -o generator -fopenmp -L/usr/local/cuda/lib64 -lcuda -lcudart
-	sbatch main.sh
 all_notCUDA:
 	g++ main_withoutCUDA.cpp Bezier.cpp Street.cpp GenerateImage.cpp PerlinNoise.cpp -Wall -O3 -o generator -fopenmp
+run:
 	sbatch main.sh
 test_vector:
 	g++ ./Testing-script/VectorTesting.cpp -Wall -O3 -o vector_testing

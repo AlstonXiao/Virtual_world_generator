@@ -68,7 +68,7 @@ int main(int argc, char** argv){
     //     randomize(obj);
     // }
     float totalTime = 0;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 2; i++) {
         start = high_resolution_clock::now();
         CanvasPoints* points = ProcessPoints(controlP);   
         obj = generateStreet(points);
@@ -77,7 +77,7 @@ int main(int argc, char** argv){
         duration_sec = std::chrono::duration_cast<duration<double, std::milli>>(end - start);
         totalTime += duration_sec.count();
     }
-    cout<<"\nTime taken: "<<totalTime/5;
+    cout<<"\nTime taken: "<<totalTime/2;
     
     if (GenerateOrNot == 1)
         Generate(obj);
