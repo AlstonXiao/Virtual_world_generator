@@ -13,6 +13,7 @@
 #include "globals.h"
 #endif
 
+#include "omp.h"
 #include <algorithm>
 #include <cmath>
 #include <vector>
@@ -70,38 +71,77 @@ OutputObject generateStreet(CanvasPoints points[]){
     
     // Generate random config
     StreetConfig config = generateRandomConfig();
+    cout<<config<<std::flush;
+    int totalpartitions = (PARAPOINTS + SECTIONSIZE) / SECTIONSIZE * 2; // * 2 for each side
+    int totalObjects = totalpartitions + config.laneCount - 1 + 2 + 1; //lanecount - 1 is the line in the middle, 2 for line at the side, final 1 is for the bars.
+    int finalObjectsStart = totalpartitions + config.laneCount - 1;
+    ThreeDObject* obj = new ThreeDObject[totalObjects];
 
-    // arc-length to 10 meters segment
-    // send to OpenMP to generate the streets, each part should determine their own extraSpace
-    // #pragma omp firstprivate
-    // float count = 0;
-    // int previous = 0;
-    // for (int i = 0; i <= PARAPOINTS; i++) {
-    //     if (count > SECTIONSIZE) {
-            
-    //     }
-    //     count += points[i].distance;
-    // }   
-
-    // merge the points together
-    cout<<config;
-    // send the Object to cuda for details randomization
-    ThreeDObject* obj = new ThreeDObject[2+config.laneCount + 3];
-    obj[0] = GenerateParts(points, 0, PARAPOINTS+1, config, 0);
-    obj[1] = GenerateParts(points, 0,PARAPOINTS+1, config, 1);
     float linewitdth = 0.1 + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX / 0.1));
-    for (int i = 0; i < config.laneCount - 1; i++) {
-        float position = config.centerWidth + (i+1) * config.laneWidth;
-        obj[2+i] = GenerateSignDashed(points, position, linewitdth);
-    }
-    obj[2+config.laneCount] = GenerateSign(points, config.centerWidth + linewitdth + 0.1, linewitdth);
-    obj[2+config.laneCount+1] = GenerateSign(points, config.centerWidth + config.laneWidth * config.laneCount - linewitdth - 0.1, linewitdth);
     float barspos = config.centerWidth + config.laneWidth * config.laneCount + 0.3 + config.shoulderWidth + (config.laneDivide ? config.laneDivderWidth : 0);
-    cout<<"barpos: "<<barspos;
-    obj[2+config.laneCount+2] = GenerateBars(points, barspos);
+    float slopeDis = static_cast <float> (rand()) /( static_cast <float> (RAND_MAX / 0.1));
+    // send to OpenMP to generate the streets
+    #pragma omp parallel 
+    {
+        #pragma omp single nowait
+        {   
+            int i = 0;
+            while(i*SECTIONSIZE + SECTIONSIZE <= PARAPOINTS + 1) {
+                if (i == 0) {
+                    #pragma omp task
+                    obj[2 * i] = GenerateParts(points, SECTIONSIZE * i, SECTIONSIZE * (i + 1), config, 0, slopeDis);
+                    // cout<<2 * i<<"\n";
+                    #pragma omp task
+                    obj[2 * i + 1] = GenerateParts(points, SECTIONSIZE * i, SECTIONSIZE * (i + 1), config, 1, slopeDis);
+                    // cout<<2 * i + 1<<"\n";
+                } else {
+                    #pragma omp task
+                    obj[2 * i] = GenerateParts(points, SECTIONSIZE * i - 1, SECTIONSIZE * (i + 1), config, 0, slopeDis);
+                    // cout<<2 * i<<"\n";
+                    #pragma omp task
+                    obj[2 * i + 1] = GenerateParts(points, SECTIONSIZE * i - 1, SECTIONSIZE * (i + 1), config, 1, slopeDis);
+                    // cout<<2 * i + 1<<"\n";
+                }
+                i ++;
+            }
+
+            if (i != PARAPOINTS + 1) {
+                #pragma omp task
+                obj[2 * i] = GenerateParts(points, SECTIONSIZE * i - 1, PARAPOINTS + 1, config, 0, slopeDis);
+                // cout<<2 * i<<"\n";
+                #pragma omp task
+                obj[2 * i + 1] = GenerateParts(points, SECTIONSIZE * i - 1, PARAPOINTS + 1, config, 1, slopeDis);
+                // cout<<2 * i + 1<<"\n";
+            }
+
+            
+            for (int i = 0; i < config.laneCount - 1; i++) {
+                float position = config.centerWidth + (i+1) * config.laneWidth;
+                #pragma omp task
+                obj[totalpartitions+i] = GenerateSignDashed(points, position, linewitdth);
+                // cout<<totalpartitions+i<<"\n";
+            }
+            #pragma omp task
+            obj[finalObjectsStart] = GenerateSign(points, config.centerWidth + linewitdth + 0.25, linewitdth);
+            // cout<<finalObjectsStart<<"\n";
+            #pragma omp task
+            obj[finalObjectsStart+1] = GenerateSign(points, config.centerWidth + config.laneWidth * config.laneCount - linewitdth - 0.25, linewitdth);
+            #pragma omp task
+            obj[finalObjectsStart+2] = GenerateBars(points, barspos);
+            
+        }
+
+    }
+ 
+    // merge the points together       
+    cout<<"all done "<<"\n"<<std::flush;
+
+    // Returned logic
     OutputObject out;
     out.objects = obj;
-    out.otherObjectCount = config.laneCount + 3;
+    out.streetCount = totalpartitions;
+    out.otherObjectCount = totalObjects - totalpartitions;
+
     return out;
 }
 
@@ -464,10 +504,11 @@ ThreeDObject GenerateSignDashed(const CanvasPoints points[], const float positio
     return returned;
 }
 
-ThreeDObject GenerateParts(const CanvasPoints points[], const size_t start, const size_t end, const StreetConfig config, bool sided){
+ThreeDObject GenerateParts(const CanvasPoints points[], const size_t start, const size_t end, const StreetConfig Gconfig, bool sided, float slopeDis){
     vector<Vector3<float>> vertices;
     vector<Vector3<int>> faces;
-    float slopeDis = static_cast <float> (rand()) /( static_cast <float> (RAND_MAX / 0.1));
+    // fix false sharing
+    StreetConfig config = Gconfig;
     int vCount = 0;
     int vCountPre = 0;
     int vCountTotal = 0;

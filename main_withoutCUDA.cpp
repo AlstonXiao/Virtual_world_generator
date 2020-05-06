@@ -17,7 +17,7 @@
 #define GENERATEIMAGE_H
 #include "GenerateImage.h"
 #endif
-#include "PerlinNoise.cuh"
+#include "PerlinNoise.h"
 #include <iostream>
 #include <cstdlib>
 #include <ctime>

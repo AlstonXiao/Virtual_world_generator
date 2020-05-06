@@ -2,14 +2,15 @@
 // https://mrl.nyu.edu/~perlin/noise/
 #include <cmath>
 #include "PerlinNoise.cuh"
+#include <iostream>
 
-#ifndef DATATYPE_H
-#define DATATYPE_H
-#include "DataType.h"
+#ifndef GLOBAL_H
+#define GLOBAL_H
+#include "globals.h"
 #endif
 
 using namespace std;
-const int permutation[512] = { 151,160,137,91,90,15,
+const int Permutation[512] = { 151,160,137,91,90,15,
     131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
     190, 6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,
     88,237,149,56,87,174,20,125,136,171,168, 68,175,74,165,71,134,139,48,27,166,
@@ -37,18 +38,18 @@ const int permutation[512] = { 151,160,137,91,90,15,
     138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180
 };
 
-float fade(float t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+__device__ float fade(float t) { return t * t * t * (t * (t * 6 - 15) + 10); }
 
-float lerp(float t, float a, float b) { return a + t * (b - a); }
+__device__ float lerp(float t, float a, float b) { return a + t * (b - a); }
 
-float grad(int hash, float x, float y, float z) {
+__device__ float grad(int hash, float x, float y, float z) {
     int h = hash & 15;                      // CONVERT LO 4 BITS OF HASH CODE
     float u = h<8 ? x : y,                 // INTO 12 GRADIENT DIRECTIONS.
            v = h<4 ? y : h==12||h==14 ? x : z;
     return ((h&1) == 0 ? u : -u) + ((h&2) == 0 ? v : -v);
 }
 
-float noise(float x, float y, float z) {
+__device__ float noise(float x, float y, float z, int* permutation) {
     int X = (int)floor(x) & 255;                  // FIND UNIT CUBE THAT
     int Y = (int)floor(y) & 255;                  // CONTAINS POINT.
     int Z = (int)floor(z) & 255;
@@ -74,28 +75,75 @@ float noise(float x, float y, float z) {
 
 
 
-
-float OctavePerlin(float x, float y, float z, int octaves, float persistence) {
-    double addedtotal = 0;
-    double frequency = 1;
-    double amplitude = 1;
-    double maxValue = 0;			// Used for normalizing result to 0.0 - 1.0
-    for(int i=0;i<octaves;i++) {
-        addedtotal += noise(x * frequency, y * frequency, z * frequency) * amplitude;
-        
-        maxValue += amplitude;
-        
-        amplitude *= persistence;
-        frequency *= 2;
+__global__ void PerlinKernel(Vector3<float>* points, const int* permu, const size_t size, const int octaves, const float persistence, const float divided) {
+    __shared__ int permutation[512];
+    unsigned int pos = blockIdx.x * blockDim.x + threadIdx.x;
+    if (threadIdx.x < 512) permutation[threadIdx.x] = permu[threadIdx.x];
+    __syncthreads();
+    float addedtotal = 0;
+    float frequency = 1;
+    float amplitude = 1;
+    float maxValue = 0;
+    float x = points[pos].x;
+    float y = points[pos].y;
+    float z = points[pos].z;
+    if (pos < size){
+        for(int i=0;i<octaves;i++) {
+            addedtotal += noise(x * frequency, y * frequency, z * frequency, permutation) * amplitude;
+            maxValue += amplitude;
+            amplitude *= persistence;
+            frequency *= 2;
+        }
+        points[pos].y += addedtotal/maxValue / divided;
     }
-    
-    return addedtotal/maxValue;
 }
+__host__ void randomize(OutputObject Out) {
+    size_t objectCount = Out.otherObjectCount + Out.streetCount;
+    // cout<<"now in CUDA, with "<<objectCount<<" objects\n" << std::flush;
+    Vector3<float> **host_vertex = new Vector3<float>*[objectCount];
+    Vector3<float> **device_vertex = new Vector3<float>*[objectCount];
+    cudaStream_t stream[objectCount]; 
+    // cout<<"allocate done\n" << std::flush;
+    int *permu;
+    // cudaError_t code;
+    cudaMallocManaged(&permu, 512*sizeof(int));
+    // cout<<cudaGetErrorString(code);
+    // cout<<Permutation[10]<<"\n"<< std::flush;
+    // cout<<"stg"<< std::flush;
+    for (int i = 0; i < 512; i++) {
+        permu[i] = Permutation[i];
+        // cout<<permu[i]<<"\n"<< std::flush;
+    }
+    // cout<<permu[2]<<" "<<permu[511]<<"\n"<< std::flush;
+    // cout<<Out.objects[0].vertice_count<<"\n"<< std::flush;
+    for(size_t i = 0; i < objectCount; ++i) {
+        cudaStreamCreate(&stream[i]);
+        cudaHostAlloc(&host_vertex[i], Out.objects[i].vertice_count * sizeof(Vector3<float>), cudaHostAllocDefault);
+        cudaMalloc(&device_vertex[i],  Out.objects[i].vertice_count * sizeof(Vector3<float>));
+        for (size_t j = 0; j < Out.objects[i].vertice_count; j++){
+            host_vertex[i][j] = Out.objects[i].vertices[j];
+        }
+    }
+    // cout<<host_vertex[0][2]<<" "<<host_vertex[0][9999]<<"\n"<< std::flush;;
 
-__global__ void PerlinKernel(Vector3<float>* points, const int octaves, const float persistence) {
+    for (size_t i = 0; i < objectCount; ++i) {
+        cudaMemcpyAsync( device_vertex[i], host_vertex[i], Out.objects[i].vertice_count * sizeof(Vector3<float>), cudaMemcpyHostToDevice, stream[i]);
+        unsigned int blockNum = (Out.objects[i].vertice_count + THREAD_PER_BLOCK - 1) / THREAD_PER_BLOCK;
+        int octaves = i < Out.streetCount? 4 : 2;
+        float persistence = i < Out.streetCount? 0.75 : 0.5;
+        float divided = i < Out.streetCount? 20 : 40;
+        PerlinKernel<<<blockNum, THREAD_PER_BLOCK, 0, stream[i]>>>(device_vertex[i],permu, Out.objects[i].vertice_count, octaves, persistence, divided);
+        cudaMemcpyAsync( host_vertex[i], device_vertex[i], Out.objects[i].vertice_count * sizeof(Vector3<float>), cudaMemcpyDeviceToHost, stream[i]);
+    }
+    for(size_t i = 0; i < objectCount; ++i) cudaStreamSynchronize( stream[i]);
+    // cout<<host_vertex[0][2]<<" "<<host_vertex[0][9999]<<"\n"<< std::flush;;
 
-}
-__host__ void randomize(ThreeDObject TheObject, int octaves, float persistence) {
-
-
+    for(size_t i = 0; i < objectCount; ++i) {
+        for (size_t j = 0; j < Out.objects[i].vertice_count; j++){
+            Out.objects[i].vertices[j] = host_vertex[i][j];
+        }  
+        cudaStreamDestroy(stream[i]);
+        cudaFreeHost(host_vertex[i]);
+        cudaFree(device_vertex[i]);
+    }
 }

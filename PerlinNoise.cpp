@@ -91,3 +91,17 @@ float OctavePerlin(float x, float y, float z, int octaves, float persistence) {
     
     return addedtotal/maxValue;
 }
+
+void randomize(OutputObject Out) {
+    size_t objectCount = Out.otherObjectCount + Out.streetCount;
+  
+
+    for (size_t i = 0; i < objectCount; ++i) {
+        int octaves = i < Out.streetCount? 4 : 2;
+        float persistence = i < Out.streetCount? 0.75 : 0.5;
+        float divided = i < Out.streetCount? 20 : 40;
+        for (size_t j = 0; j < Out.objects[i].vertice_count; j++){
+            Out.objects[i].vertices[j].y += OctavePerlin(Out.objects[i].vertices[j].x, Out.objects[i].vertices[j].y, Out.objects[i].vertices[j].z, octaves, persistence)/divided;
+        }
+    }
+}
